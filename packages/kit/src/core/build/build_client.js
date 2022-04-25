@@ -67,6 +67,9 @@ export async function build_client({
 				outDir: client_out_dir,
 				rollupOptions: {
 					input,
+					output: {
+						entryFileNames: '[name]-[hash].js',
+					},
 				}
 			},
 		}

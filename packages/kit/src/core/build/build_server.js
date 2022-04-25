@@ -212,6 +212,10 @@ export async function build_server(
 				outDir: `${output_dir}/server`,
 				rollupOptions: {
 					input,
+					output: {
+						format: 'esm',
+						entryFileNames: '[name].js',
+					},
 				}
 			},
 		}

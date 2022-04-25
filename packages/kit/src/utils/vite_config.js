@@ -1,7 +1,5 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { get_aliases } from '../core/utils.js';
-import { useDynamicPublicPath } from 'vite-plugin-dynamic-publicpath'
-
 
 /**
  *  @param config {import('types').ValidatedConfig}
@@ -10,9 +8,6 @@ export function vite_config_common(config) {
     return {
         configFile: false,
         plugins: [
-            useDynamicPublicPath({
-                assetsBase: config.kit.paths.base
-            }),
             svelte({
                 extensions: config.extensions,
                 // In AMP mode, we know that there are no conditional component imports. In that case, we
@@ -46,7 +41,6 @@ export function vite_config_client_and_server(config) {
             polyfillDynamicImport: false,
             rollupOptions: {
                 output: {
-                    entryFileNames: '[name]-[hash].js',
                     chunkFileNames: 'chunks/[name]-[hash].js',
                     assetFileNames: 'assets/[name]-[hash][extname]'
                 },
