@@ -6,6 +6,7 @@ import { print_config_conflicts } from '../config/index.js';
 import { get_aliases, get_runtime_path } from '../utils.js';
 import { create_plugin } from './plugin.js';
 import * as sync from '../sync/sync.js';
+import { vite_config_common } from "../../utils/vite_config.js";
 
 /**
  * @typedef {{
@@ -45,36 +46,24 @@ export async function dev({ cwd, port, host, https, config }) {
 	);
 
 	/** @type {[any, string[]]} */
-	const [merged_config, conflicts] = deep_merge(vite_config, {
-		configFile: false,
-		root: cwd,
-		resolve: {
-			alias: get_aliases(config)
-		},
-		build: {
-			rollupOptions: {
-				// Vite dependency crawler needs an explicit JS entry point
-				// eventhough server otherwise works without it
-				input: `${get_runtime_path(config)}/client/start.js`
-			}
-		},
-		plugins: [
-			svelte({
-				extensions: config.extensions,
-				// In AMP mode, we know that there are no conditional component imports. In that case, we
-				// don't need to include CSS for components that are imported but unused, so we can just
-				// include rendered CSS.
-				// This would also apply if hydrate and router are both false, but we don't know if one
-				// has been enabled at the page level, so we don't do anything there.
-				emitCss: !config.kit.amp,
-				compilerOptions: {
-					hydratable: !!config.kit.browser.hydrate
+	const [merged_config, conflicts] = deep_merge(
+		vite_config,
+		vite_config_common(config),
+		{
+			root: cwd,
+			// base: '/'
+			build: {
+				rollupOptions: {
+					// Vite dependency crawler needs an explicit JS entry point
+					// eventhough server otherwise works without it
+					input: `${get_runtime_path(config)}/client/start.js`
 				}
-			}),
-			await create_plugin(config, cwd)
-		],
-		base: '/'
-	});
+			},
+			plugins: [
+				await create_plugin(config, cwd)
+			],
+		}
+	);
 
 	print_config_conflicts(conflicts, 'kit.vite.');
 

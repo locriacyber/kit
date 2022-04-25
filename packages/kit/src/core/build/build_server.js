@@ -7,6 +7,7 @@ import { load_template, print_config_conflicts } from '../config/index.js';
 import { get_aliases, get_runtime_path, resolve_entry } from '../utils.js';
 import { create_build, find_deps } from './utils.js';
 import { s } from '../../utils/misc.js';
+import { vite_config_common, vite_config_client_and_server } from "../../utils/vite_config.js";
 
 /**
  * @param {{
@@ -199,38 +200,22 @@ export async function build_server(
 	const [modified_vite_config] = deep_merge(default_config, vite_config);
 
 	/** @type {[any, string[]]} */
-	const [merged_config, conflicts] = deep_merge(modified_vite_config, {
-		configFile: false,
-		root: cwd,
-		base: assets_base,
-		build: {
-			ssr: true,
-			outDir: `${output_dir}/server`,
-			manifest: true,
-			polyfillDynamicImport: false,
-			rollupOptions: {
-				input,
-				output: {
-					format: 'esm',
-					entryFileNames: '[name].js',
-					chunkFileNames: 'chunks/[name]-[hash].js',
-					assetFileNames: 'assets/[name]-[hash][extname]'
-				},
-				preserveEntrySignatures: 'strict'
-			}
-		},
-		plugins: [
-			svelte({
-				extensions: config.extensions,
-				compilerOptions: {
-					hydratable: !!config.kit.browser.hydrate
+	const [merged_config, conflicts] = deep_merge(
+		modified_vite_config,
+		vite_config_common(config),
+		vite_config_client_and_server(config),
+		{
+			root: cwd,
+			base: assets_base,
+			build: {
+				ssr: true,
+				outDir: `${output_dir}/server`,
+				rollupOptions: {
+					input,
 				}
-			})
-		],
-		resolve: {
-			alias: get_aliases(config)
+			},
 		}
-	});
+	);
 
 	print_config_conflicts(conflicts, 'kit.vite.', 'build_server');
 

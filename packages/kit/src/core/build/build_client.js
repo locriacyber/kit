@@ -6,6 +6,7 @@ import { print_config_conflicts } from '../config/index.js';
 import { get_aliases } from '../utils.js';
 import { create_build, find_deps } from './utils.js';
 import { posixify } from '../../utils/filesystem.js';
+import { vite_config_common, vite_config_client_and_server } from "../../utils/vite_config.js";
 
 /**
  * @param {{
@@ -54,46 +55,22 @@ export async function build_client({
 	});
 
 	/** @type {[any, string[]]} */
-	const [merged_config, conflicts] = deep_merge(await config.kit.vite(), {
-		configFile: false,
-		root: cwd,
-		base: assets_base,
-		build: {
-			cssCodeSplit: true,
-			manifest: true,
-			outDir: client_out_dir,
-			polyfillDynamicImport: false,
-			rollupOptions: {
-				input,
-				output: {
-					entryFileNames: '[name]-[hash].js',
-					chunkFileNames: 'chunks/[name]-[hash].js',
-					assetFileNames: 'assets/[name]-[hash][extname]'
-				},
-				preserveEntrySignatures: 'strict'
-			}
-		},
-		resolve: {
-			alias: get_aliases(config)
-		},
-		plugins: [
-			svelte({
-				extensions: config.extensions,
-				// In AMP mode, we know that there are no conditional component imports. In that case, we
-				// don't need to include CSS for components that are imported but unused, so we can just
-				// include rendered CSS.
-				// This would also apply if hydrate and router are both false, but we don't know if one
-				// has been enabled at the page level, so we don't do anything there.
-				emitCss: !config.kit.amp,
-				compilerOptions: {
-					hydratable: !!config.kit.browser.hydrate
+	const [merged_config, conflicts] = deep_merge(
+		await config.kit.vite(),
+		vite_config_common(config),
+		vite_config_client_and_server(config),
+		{
+			root: cwd,
+			base: assets_base,
+			build: {
+				cssCodeSplit: true,
+				outDir: client_out_dir,
+				rollupOptions: {
+					input,
 				}
-			})
-		],
-		// prevent Vite copying the contents of `config.kit.files.assets`,
-		// if it happens to be 'public' instead of 'static'
-		publicDir: false
-	});
+			},
+		}
+	);
 
 	print_config_conflicts(conflicts, 'kit.vite.', 'build_client');
 
