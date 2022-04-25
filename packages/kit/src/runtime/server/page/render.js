@@ -22,9 +22,8 @@ const updated = {
  *   $session: any;
  *   page_config: { hydrate: boolean, router: boolean };
  *   status: number;
- *   error?: Error;
- *   url: URL;
- *   params: Record<string, string>;
+ *   error: Error | null;
+ *   event: import('types').RequestEvent;
  *   resolve_opts: import('types').RequiredResolveOptions;
  *   stuff: Record<string, any>;
  * }} opts
@@ -36,9 +35,8 @@ export async function render_response({
 	$session,
 	page_config,
 	status,
-	error,
-	url,
-	params,
+	error = null,
+	event,
 	resolve_opts,
 	stuff
 }) {
@@ -96,12 +94,14 @@ export async function render_response({
 				session,
 				updated
 			},
+			/** @type {import('types').Page} */
 			page: {
-				url: state.prerender ? create_prerendering_url_proxy(url) : url,
-				params,
-				status,
 				error,
-				stuff
+				params: event.params,
+				routeId: event.routeId,
+				status,
+				stuff,
+				url: state.prerender ? create_prerendering_url_proxy(event.url) : event.url
 			},
 			components: branch.map(({ node }) => node.module.default)
 		};
@@ -157,7 +157,7 @@ export async function render_response({
 
 	const target = hash(body);
 
-	const segments = url.pathname.slice(options.paths.base.length).split('/').slice(2);
+	const segments = event.url.pathname.slice(options.paths.base.length).split('/').slice(2);
 	const assets =
 		options.paths.assets || (segments.length > 0 ? segments.map(() => '..').join('/') : '.');
 
@@ -184,7 +184,8 @@ export async function render_response({
 					.map(({ node }) => `import(${s(prefix(node.entry))})`)
 					.join(',\n\t\t\t\t\t\t')}
 				],
-				params: ${devalue(params)}
+				params: ${devalue(event.params)},
+				routeId: ${s(event.routeId)}
 			}` : 'null'}
 		});
 	`;

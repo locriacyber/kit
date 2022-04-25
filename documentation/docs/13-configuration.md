@@ -34,6 +34,7 @@ const config = {
 			assets: 'static',
 			hooks: 'src/hooks',
 			lib: 'src/lib',
+			params: 'src/params',
 			routes: 'src/routes',
 			serviceWorker: 'src/service-worker',
 			template: 'src/app.html'
@@ -148,6 +149,7 @@ An object containing zero or more of the following `string` values:
 - `assets` — a place to put static files that should have stable URLs and undergo no processing, such as `favicon.ico` or `manifest.json`
 - `hooks` — the location of your hooks module (see [Hooks](/docs/hooks))
 - `lib` — your app's internal library, accessible throughout the codebase as `$lib`
+- `params` — a directory containing [parameter matchers](/docs/routing#advanced-routing-matching)
 - `routes` — the files that define the structure of your app (see [Routing](/docs/routing))
 - `serviceWorker` — the location of your service worker's entry point (see [Service workers](/docs/service-workers))
 - `template` — the location of the template for HTML responses
@@ -275,9 +277,9 @@ An object containing zero or more of the following values:
 
 Whether to remove, append, or ignore trailing slashes when resolving URLs to routes.
 
-- `"never"` — redirect `/x/` to `/x`
-- `"always"` — redirect `/x` to `/x/`
-- `"ignore"` — don't automatically add or remove trailing slashes. `/x` and `/x/` will be treated equivalently
+- `'never'` — redirect `/x/` to `/x`
+- `'always'` — redirect `/x` to `/x/`
+- `'ignore'` — don't automatically add or remove trailing slashes. `/x` and `/x/` will be treated equivalently
 
 This option also affects [prerendering](/docs/page-options#prerender). If `trailingSlash` is `always`, a route like `/about` will result in an `about/index.html` file, otherwise it will create `about.html`, mirroring static webserver conventions.
 
